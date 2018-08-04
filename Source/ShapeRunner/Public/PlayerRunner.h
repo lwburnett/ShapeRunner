@@ -6,6 +6,10 @@
 #include "GameFramework/Pawn.h"
 #include "PlayerRunner.generated.h"
 
+
+class URunnerMovementComponent;
+
+
 UCLASS()
 class SHAPERUNNER_API APlayerRunner : public APawn
 {
@@ -25,7 +29,4 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	
-	
 };
