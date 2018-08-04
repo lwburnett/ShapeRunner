@@ -19,9 +19,19 @@ class SHAPERUNNER_API USphereMovementComponent : public UMovementComponent
 public:
 	USphereMovementComponent();
 
-	void MoveForward() const;
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void IntendMoveForward(float throwVal = 1.0) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void IntendMoveHorizontal(float throwVal) const;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	float _forwardMoveSpeed;
+	float _cruiseSpeed;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	float _horizontalMoveSpeed;
+
+
+	static FVector GetHorizontalVector(const FRotator& rotator, float clampedThrow);
 };

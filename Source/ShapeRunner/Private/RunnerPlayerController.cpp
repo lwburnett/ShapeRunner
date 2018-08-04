@@ -6,7 +6,9 @@
 #include "GameFramework/FloatingPawnMovement.h"
 
 
-ARunnerPlayerController::ARunnerPlayerController()
+ARunnerPlayerController::ARunnerPlayerController() :
+		_owner(nullptr),
+		_movementComponent(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -14,30 +16,36 @@ ARunnerPlayerController::ARunnerPlayerController()
 void ARunnerPlayerController::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
+	
+	_movementComponent->IntendMoveForward();
+}
 
-	auto pawn = GetPawn();
-	if(!ensure(pawn))
+void ARunnerPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	_owner = GetPawn();
+
+	if (!ensure(_owner))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No pawn found for player controller"));
 		return;
 	}
 
-	if(!HaveFloatingPawnMovementComponent(pawn))
-		UE_LOG(
-			LogTemp, 
-			Warning, 
-			TEXT("No floating pawn movement component found. %s may not move."), 
-			*GetNameSafe(pawn));
+	_movementComponent = GetMovementComponent(_owner);
 
-	auto movementComponent = GetMovementComponent(pawn);
-
-	if (!ensure(movementComponent))
+	if (!ensure(_movementComponent))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No movement component found for player controller"));
 		return;
 	}
 
-		movementComponent->MoveForward();
+	if (!HaveFloatingPawnMovementComponent(_owner))
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("No floating pawn movement component found. %s may not move."),
+			*GetNameSafe(_owner));
 }
 
 USphereMovementComponent* ARunnerPlayerController::GetMovementComponent(APawn* owner)

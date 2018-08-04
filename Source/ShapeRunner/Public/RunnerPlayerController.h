@@ -15,9 +15,18 @@ class SHAPERUNNER_API ARunnerPlayerController : public APlayerController
 
 public:
 	ARunnerPlayerController();
+
 	void Tick(float deltaTime) override;
 
+
+protected:
+	void BeginPlay() override;
+
+
 private:
+	APawn* _owner;
+	USphereMovementComponent* _movementComponent;
+
 	static USphereMovementComponent* GetMovementComponent(APawn* owner);
 
 	static bool HaveFloatingPawnMovementComponent(APawn* owner);
