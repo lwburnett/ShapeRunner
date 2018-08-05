@@ -18,13 +18,11 @@ public:
 
 	void Tick(float deltaTime) override;
 
-
 protected:
 	void BeginPlay() override;
 
 
 private:
-	APawn* _owner;
 	USphereMovementComponent* _movementComponent;
 
 	static USphereMovementComponent* GetMovementComponent(APawn* owner);
