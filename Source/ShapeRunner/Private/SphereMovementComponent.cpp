@@ -2,16 +2,22 @@
 
 #include "SphereMovementComponent.h"
 #include "GameFramework/Pawn.h"
+#include "Engine/World.h"
+#include "RunnerGameState.h"
 
 
 USphereMovementComponent::USphereMovementComponent() :
 		_cruiseSpeed(10.0),
-		_horizontalMoveSpeed(5.0)
+		_horizontalMoveSpeed(5.0), 
+		_isPlaying(false)
 {
 }
 
 void USphereMovementComponent::IntendMoveForward(const float throwVal) const
 {
+	if (!_isPlaying)
+		return;
+
 	auto pawn = Cast<APawn>(GetOwner());
 
 	if(!pawn)
@@ -44,6 +50,23 @@ void USphereMovementComponent::IntendMoveHorizontal(const float throwVal) const
 	pawn->AddMovementInput(direction, clampedThrow * _horizontalMoveSpeed);
 }
 
+void USphereMovementComponent::BeginPlay()
+{
+	auto gameState = GetWorld()->GetGameState<ARunnerGameState>();
+
+	if(!ensure(gameState))
+	{
+		UE_LOG(LogTemp, Error, TEXT("No game state found."));
+		return;
+	}
+
+	_isPlaying = gameState->IsPlaying();
+
+	gameState->OnBeginPlaying.AddUniqueDynamic(this, &USphereMovementComponent::OnBeginPlaying);
+	gameState->OnBeginLoading.AddUniqueDynamic(this, &USphereMovementComponent::OnBeginNotPlaying);
+	gameState->OnBeginPausing.AddUniqueDynamic(this, &USphereMovementComponent::OnBeginNotPlaying);
+}
+
 FVector USphereMovementComponent::GetHorizontalVector(const FRotator& rotator, const float clampedThrow)
 {
 	auto toAdd = clampedThrow > 0.0 ? 90.0 : -90.0;
@@ -60,4 +83,14 @@ FVector USphereMovementComponent::GetHorizontalVector(const FRotator& rotator, c
 	ret.Yaw = newYaw;
 
 	return ret.Vector();
+}
+
+void USphereMovementComponent::OnBeginPlaying()
+{
+	_isPlaying = true;
+}
+
+void USphereMovementComponent::OnBeginNotPlaying()
+{
+	_isPlaying = false;
 }

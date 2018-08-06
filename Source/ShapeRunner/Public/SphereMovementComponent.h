@@ -25,6 +25,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void IntendMoveHorizontal(float throwVal) const;
 
+
+	void BeginPlay() override;
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _cruiseSpeed;
@@ -32,6 +35,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _horizontalMoveSpeed;
 
+	bool _isPlaying;
+
+
+	UFUNCTION()
+	void OnBeginPlaying();
+
+	UFUNCTION()
+	void OnBeginNotPlaying();
 
 	static FVector GetHorizontalVector(const FRotator& rotator, float clampedThrow);
 };

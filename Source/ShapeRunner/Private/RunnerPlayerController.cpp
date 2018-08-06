@@ -16,7 +16,6 @@ void ARunnerPlayerController::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 	
-
 	if (!ensure(_movementComponent))
 		return;
 

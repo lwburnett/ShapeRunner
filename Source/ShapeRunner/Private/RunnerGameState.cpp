@@ -9,14 +9,22 @@
 ARunnerGameState::ARunnerGameState():
 		_maxNumTiles(10),
 		_startPosition(0.0),
-		_tileBlueprint(nullptr), 
+		_tileBlueprint(nullptr),
 		_factory(nullptr),
-		_mostRecentTile(nullptr)
+		_mostRecentTile(nullptr), 
+		_playState()
 {
+}
+
+bool ARunnerGameState::IsPlaying() const
+{
+	return _playState == EPlayState::Playing;
 }
 
 void ARunnerGameState::BeginPlay()
 {
+	UpdatePlayState(EPlayState::Loading);
+
 	Super::BeginPlay();
 
 	_factory = FindComponentByClass<UTileFactoryComponent>();
@@ -29,6 +37,8 @@ void ARunnerGameState::BeginPlay()
 		HandleTileCreation(transform);
 		transform = _mostRecentTile->GetNextTileTransform();
 	}
+
+	UpdatePlayState(EPlayState::Playing);
 }
 
 void ARunnerGameState::HandleTileCrossed()
@@ -52,4 +62,34 @@ void ARunnerGameState::HandleTileCreation(const FTransform& transform)
 	_mostRecentTile = newTile;
 
 	_mostRecentTile->OnEndCrossed.AddUniqueDynamic(this, &ARunnerGameState::HandleTileCrossed);
+}
+
+void ARunnerGameState::UpdatePlayState(EPlayState state)
+{
+	switch (state)
+	{
+	case EPlayState::Loading:
+		{
+			_playState = state;
+			OnBeginLoading.Broadcast();
+			break;
+		}
+	case EPlayState::Playing:
+		{
+			_playState = state;
+			OnBeginPlaying.Broadcast();
+			break;
+		}
+	case EPlayState::Pausing:
+		{
+			_playState = state;
+			OnBeginPausing.Broadcast();
+			break;
+		}
+	default:
+		{
+			UE_LOG(LogTemp, Error, TEXT("Unknown state encountered."));
+			return;
+		}
+	}
 }

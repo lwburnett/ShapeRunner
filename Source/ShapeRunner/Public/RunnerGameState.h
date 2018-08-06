@@ -8,6 +8,15 @@
 #include <queue>
 #include "RunnerGameState.generated.h"
 
+UENUM()
+enum class EPlayState : uint8
+{
+	Loading,
+	Playing,
+	Pausing
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGameStateDelegate);
 
 class ATileBase;
 class UTileFactoryComponent;
@@ -19,6 +28,12 @@ class SHAPERUNNER_API ARunnerGameState : public AGameStateBase
 	
 public:
 	ARunnerGameState();
+
+	bool IsPlaying() const;
+
+	FGameStateDelegate OnBeginPlaying;
+	FGameStateDelegate OnBeginLoading;
+	FGameStateDelegate OnBeginPausing;
 
 protected:
 	void BeginPlay() override;
@@ -39,8 +54,12 @@ private:
 
 	ATileBase* _mostRecentTile;
 
+	EPlayState _playState;
+
 	UFUNCTION()
 	void HandleTileCrossed();
 
 	void HandleTileCreation(const FTransform& transform);
+
+	void UpdatePlayState(EPlayState state);
 };
