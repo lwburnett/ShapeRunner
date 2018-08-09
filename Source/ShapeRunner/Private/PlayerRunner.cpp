@@ -15,15 +15,5 @@ APlayerRunner::APlayerRunner()
 void APlayerRunner::BeginPlay()
 {
 	Super::BeginPlay();
-
-	auto gameState = GetWorld()->GetGameState<ARunnerGameState>();
-
-	if(!gameState)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Cannot get game state!"));
-		return;
-	}
-
-	
 }
 

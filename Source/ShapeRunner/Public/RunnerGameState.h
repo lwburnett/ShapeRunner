@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Queue.h"
 #include "GameFramework/GameStateBase.h"
-#include <queue>
 #include "RunnerGameState.generated.h"
 
 UENUM()
@@ -45,12 +44,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	FVector _startPosition;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	TSubclassOf<ATileBase> _tileBlueprint;
 
 	UTileFactoryComponent* _factory;
 
-	std::queue<ATileBase*> _tileQueue;
+	TQueue<ATileBase*> _tileQueue;
 
 	ATileBase* _mostRecentTile;
 
@@ -59,7 +58,7 @@ private:
 	UFUNCTION()
 	void HandleTileCrossed();
 
-	void HandleTileCreation(const FTransform& transform);
+	void HandleTileCreation(const FTransform& transform, bool removeLast);
 
 	void UpdatePlayState(EPlayState state);
 };

@@ -60,11 +60,11 @@ void USphereMovementComponent::BeginPlay()
 		return;
 	}
 
-	_isPlaying = gameState->IsPlaying();
-
 	gameState->OnBeginPlaying.AddUniqueDynamic(this, &USphereMovementComponent::OnBeginPlaying);
 	gameState->OnBeginLoading.AddUniqueDynamic(this, &USphereMovementComponent::OnBeginNotPlaying);
 	gameState->OnBeginPausing.AddUniqueDynamic(this, &USphereMovementComponent::OnBeginNotPlaying);
+
+	_isPlaying = gameState->IsPlaying();
 }
 
 FVector USphereMovementComponent::GetHorizontalVector(const FRotator& rotator, const float clampedThrow)

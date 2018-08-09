@@ -23,9 +23,9 @@ bool ARunnerGameState::IsPlaying() const
 
 void ARunnerGameState::BeginPlay()
 {
-	UpdatePlayState(EPlayState::Loading);
-
 	Super::BeginPlay();
+
+	UpdatePlayState(EPlayState::Loading);
 
 	_factory = FindComponentByClass<UTileFactoryComponent>();
 
@@ -34,7 +34,7 @@ void ARunnerGameState::BeginPlay()
 
 	for (auto i=0; i < _maxNumTiles; i++)
 	{
-		HandleTileCreation(transform);
+		HandleTileCreation(transform, false);
 		transform = _mostRecentTile->GetNextTileTransform();
 	}
 
@@ -43,20 +43,22 @@ void ARunnerGameState::BeginPlay()
 
 void ARunnerGameState::HandleTileCrossed()
 {
-	HandleTileCreation(_mostRecentTile->GetNextTileTransform());
+	HandleTileCreation(_mostRecentTile->GetNextTileTransform(), true);
 }
 
-void ARunnerGameState::HandleTileCreation(const FTransform& transform)
+void ARunnerGameState::HandleTileCreation(const FTransform& transform, bool removeLast)
 {
 	auto newTile = _factory->CreateTile(_tileBlueprint, transform);
 
-	_tileQueue.push(newTile);
+	_tileQueue.Enqueue(newTile);
 
-	if(_tileQueue.size() > _maxNumTiles)
+	if(removeLast)
 	{
-		auto tileToDestroy = _tileQueue.front();
-		_tileQueue.pop();
-		tileToDestroy->Destroy();
+		ATileBase* tileToDestroy;
+		if(_tileQueue.Dequeue(tileToDestroy))
+			tileToDestroy->Destroy();
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Unable to dequeue item from tile queue"));
 	}
 
 	_mostRecentTile = newTile;
@@ -89,7 +91,7 @@ void ARunnerGameState::UpdatePlayState(EPlayState state)
 	default:
 		{
 			UE_LOG(LogTemp, Error, TEXT("Unknown state encountered."));
-			return;
+			break;
 		}
 	}
 }
