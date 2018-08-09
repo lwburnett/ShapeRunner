@@ -52,6 +52,8 @@ void USphereMovementComponent::IntendMoveHorizontal(const float throwVal) const
 
 void USphereMovementComponent::BeginPlay()
 {
+	Super::BeginPlay();
+
 	auto gameState = GetWorld()->GetGameState<ARunnerGameState>();
 
 	if(!ensure(gameState))
