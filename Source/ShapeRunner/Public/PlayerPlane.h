@@ -13,8 +13,11 @@ UCLASS()
 class SHAPERUNNER_API UPlayerPlane : public UStaticMeshComponent
 {
 	GENERATED_BODY()
-	
-	
-	
-	
+
+
+public:
+
+	UPlayerPlane();
+
+	void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

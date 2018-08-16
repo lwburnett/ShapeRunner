@@ -7,6 +7,7 @@
 #include "SphereMovementComponent.generated.h"
 
 
+class UArrowComponent;
 class UPlaneWing;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -26,7 +27,7 @@ public:
 	void IntendRotateClockwise(float throwVal) const;
 
 	UFUNCTION(BlueprintCallable, Category = Setup)
-	void Initialize(UPlaneWing* lwing, UPlaneWing* rwing);
+	void Initialize(UPlaneWing* lwing, UPlaneWing* rwing, UArrowComponent* propeller);
 
 	void BeginPlay() override;
 
@@ -34,7 +35,7 @@ public:
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	float _initialSpeed;
+	float _propellerForceNewtons;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _horizontalMoveSpeed;
@@ -43,6 +44,7 @@ private:
 
 	UPlaneWing* _lwing;
 	UPlaneWing* _rwing;
+	UArrowComponent* _propeller;
 
 
 	UFUNCTION()

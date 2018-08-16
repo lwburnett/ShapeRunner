@@ -24,6 +24,4 @@ private:
 	USphereMovementComponent* _movementComponent;
 
 	static USphereMovementComponent* GetMovementComponent(APawn* owner);
-
-	static bool HaveFloatingPawnMovementComponent(APawn* owner);
 };

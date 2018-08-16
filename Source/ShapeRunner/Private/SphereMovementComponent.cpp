@@ -4,14 +4,17 @@
 #include "GameFramework/Pawn.h"
 #include "Engine/World.h"
 #include "RunnerGameState.h"
+#include "Components/PrimitiveComponent.h"
+#include "Components/ArrowComponent.h"
 
 
 USphereMovementComponent::USphereMovementComponent() :
-		_initialSpeed(10.0),
+		_propellerForceNewtons(100000.0),
 		_horizontalMoveSpeed(5.0),
-		_isPlaying(false), 
-		_lwing(nullptr), 
-		_rwing(nullptr)
+		_isPlaying(false),
+		_lwing(nullptr),
+		_rwing(nullptr), 
+		_propeller(nullptr)
 
 {
 }
@@ -50,16 +53,6 @@ void USphereMovementComponent::BeginPlay()
 	gameState->OnBeginPausing.AddUniqueDynamic(this, &USphereMovementComponent::OnBeginNotPlaying);
 
 	_isPlaying = gameState->IsPlaying();
-
-	auto owner = Cast<APawn>(GetOwner());
-
-	if (!ensure(owner))
-	{
-		UE_LOG(LogTemp, Error, TEXT("No owner found."));
-		return;
-	}
-
-	auto forwardVector = owner->GetActorRotation().Vector();
 }
 
 void USphereMovementComponent::TickComponent(
@@ -69,20 +62,19 @@ void USphereMovementComponent::TickComponent(
 {
 	Super::TickComponent(deltaTime, tickType, thisTickFunction);
 
+
 	if (!_isPlaying)
 		return;
 
-	auto pawn = Cast<APawn>(GetOwner());
+	auto body = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
 
-	if (!pawn)
+	if (!ensure(body))
 	{
 		UE_LOG(LogTemp, Error, TEXT("Cannot move pawn forward"));
 		return;
 	}
 
-	auto fowardVector = pawn->GetActorRotation().Vector();
-
-	pawn->AddMovementInput(fowardVector, _initialSpeed);
+	body->AddForce(body->GetForwardVector() * _propellerForceNewtons);
 }
 
 FVector USphereMovementComponent::GetHorizontalVector(const FRotator& rotator, const float clampedThrow)
@@ -113,10 +105,11 @@ void USphereMovementComponent::OnBeginNotPlaying()
 	_isPlaying = false;
 }
 
-void USphereMovementComponent::Initialize(UPlaneWing* lwing, UPlaneWing* rwing)
+void USphereMovementComponent::Initialize(UPlaneWing* lwing, UPlaneWing* rwing, UArrowComponent* propeller)
 {
 	_lwing = lwing;
 	_rwing = rwing;
+	_propeller = propeller;
 }
 
 void USphereMovementComponent::IntendAccelerate(float throwVal) const

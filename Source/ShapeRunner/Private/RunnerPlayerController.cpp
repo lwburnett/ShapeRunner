@@ -29,23 +29,9 @@ void ARunnerPlayerController::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("No movement component found for player controller"));
 		return;
 	}
-
-	if (!HaveFloatingPawnMovementComponent(owner))
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("No floating pawn movement component found. %s may not move."),
-			*GetNameSafe(owner));
 }
 
 USphereMovementComponent* ARunnerPlayerController::GetMovementComponent(APawn* owner)
 {
 	return owner->FindComponentByClass<USphereMovementComponent>();
-}
-
-bool ARunnerPlayerController::HaveFloatingPawnMovementComponent(APawn* owner)
-{
-	auto component = owner->FindComponentByClass<UFloatingPawnMovement>();
-
-	return component != nullptr;
 }
