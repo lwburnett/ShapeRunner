@@ -7,33 +7,16 @@
 
 
 USphereMovementComponent::USphereMovementComponent() :
-		_cruiseSpeed(10.0),
-		_horizontalMoveSpeed(5.0), 
-		_isPlaying(false)
+		_initialSpeed(10.0),
+		_horizontalMoveSpeed(5.0),
+		_isPlaying(false), 
+		_lwing(nullptr), 
+		_rwing(nullptr)
+
 {
 }
 
-void USphereMovementComponent::IntendMoveForward(const float throwVal) const
-{
-	if (!_isPlaying)
-		return;
-
-	auto pawn = Cast<APawn>(GetOwner());
-
-	if(!pawn)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Cannot move pawn forward"));
-		return;
-	}
-
-	auto clampedThrow = FMath::Clamp<float>(throwVal, -1.0, 1.0);
-
-	auto fowardVector = pawn->GetActorRotation().Vector();
-
-	pawn->AddMovementInput(fowardVector, clampedThrow * _cruiseSpeed);
-}
-
-void USphereMovementComponent::IntendMoveHorizontal(const float throwVal) const
+void USphereMovementComponent::IntendRotateClockwise(const float throwVal) const
 {
 	auto pawn = Cast<APawn>(GetOwner());
 
@@ -67,6 +50,39 @@ void USphereMovementComponent::BeginPlay()
 	gameState->OnBeginPausing.AddUniqueDynamic(this, &USphereMovementComponent::OnBeginNotPlaying);
 
 	_isPlaying = gameState->IsPlaying();
+
+	auto owner = Cast<APawn>(GetOwner());
+
+	if (!ensure(owner))
+	{
+		UE_LOG(LogTemp, Error, TEXT("No owner found."));
+		return;
+	}
+
+	auto forwardVector = owner->GetActorRotation().Vector();
+}
+
+void USphereMovementComponent::TickComponent(
+	float deltaTime, 
+	ELevelTick tickType, 
+	FActorComponentTickFunction* thisTickFunction)
+{
+	Super::TickComponent(deltaTime, tickType, thisTickFunction);
+
+	if (!_isPlaying)
+		return;
+
+	auto pawn = Cast<APawn>(GetOwner());
+
+	if (!pawn)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Cannot move pawn forward"));
+		return;
+	}
+
+	auto fowardVector = pawn->GetActorRotation().Vector();
+
+	pawn->AddMovementInput(fowardVector, _initialSpeed);
 }
 
 FVector USphereMovementComponent::GetHorizontalVector(const FRotator& rotator, const float clampedThrow)
@@ -95,4 +111,14 @@ void USphereMovementComponent::OnBeginPlaying()
 void USphereMovementComponent::OnBeginNotPlaying()
 {
 	_isPlaying = false;
+}
+
+void USphereMovementComponent::Initialize(UPlaneWing* lwing, UPlaneWing* rwing)
+{
+	_lwing = lwing;
+	_rwing = rwing;
+}
+
+void USphereMovementComponent::IntendAccelerate(float throwVal) const
+{
 }

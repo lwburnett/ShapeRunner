@@ -6,9 +6,9 @@
 #include "GameFramework/MovementComponent.h"
 #include "SphereMovementComponent.generated.h"
 
-/**
- * 
- */
+
+class UPlaneWing;
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class SHAPERUNNER_API USphereMovementComponent : public UMovementComponent
 {
@@ -20,22 +20,29 @@ public:
 	USphereMovementComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void IntendMoveForward(float throwVal = 1.0) const;
+	void IntendAccelerate(float throwVal = 1) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void IntendMoveHorizontal(float throwVal) const;
+	void IntendRotateClockwise(float throwVal) const;
 
+	UFUNCTION(BlueprintCallable, Category = Setup)
+	void Initialize(UPlaneWing* lwing, UPlaneWing* rwing);
 
 	void BeginPlay() override;
 
+	void TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	float _cruiseSpeed;
+	float _initialSpeed;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _horizontalMoveSpeed;
 
 	bool _isPlaying;
+
+	UPlaneWing* _lwing;
+	UPlaneWing* _rwing;
 
 
 	UFUNCTION()

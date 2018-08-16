@@ -16,8 +16,6 @@ class SHAPERUNNER_API ARunnerPlayerController : public APlayerController
 public:
 	ARunnerPlayerController();
 
-	void Tick(float deltaTime) override;
-
 protected:
 	void BeginPlay() override;
 

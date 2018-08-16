@@ -9,17 +9,7 @@
 ARunnerPlayerController::ARunnerPlayerController() :
 		_movementComponent(nullptr)
 {
-	PrimaryActorTick.bCanEverTick = true;
-}
-
-void ARunnerPlayerController::Tick(float deltaTime)
-{
-	Super::Tick(deltaTime);
-	
-	if (!ensure(_movementComponent))
-		return;
-
-	_movementComponent->IntendMoveForward();
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 void ARunnerPlayerController::BeginPlay()

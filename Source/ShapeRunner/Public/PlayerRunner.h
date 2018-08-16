@@ -7,9 +7,6 @@
 #include "PlayerRunner.generated.h"
 
 
-class URunnerMovementComponent;
-
-
 UCLASS()
 class SHAPERUNNER_API APlayerRunner : public APawn
 {
