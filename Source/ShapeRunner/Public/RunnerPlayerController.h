@@ -15,13 +15,4 @@ class SHAPERUNNER_API ARunnerPlayerController : public APlayerController
 
 public:
 	ARunnerPlayerController();
-
-protected:
-	void BeginPlay() override;
-
-
-private:
-	UPlaneFlightMovementComponent * _movementComponent;
-
-	static UPlaneFlightMovementComponent* GetMovementComponent(APawn* owner);
 };

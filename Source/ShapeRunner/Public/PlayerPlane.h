@@ -18,6 +18,4 @@ class SHAPERUNNER_API UPlayerPlane : public UStaticMeshComponent
 public:
 
 	UPlayerPlane();
-
-	void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

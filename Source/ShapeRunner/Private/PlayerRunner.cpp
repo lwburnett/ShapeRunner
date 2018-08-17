@@ -12,8 +12,3 @@ APlayerRunner::APlayerRunner()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void APlayerRunner::BeginPlay()
-{
-	Super::BeginPlay();
-}
-

@@ -16,7 +16,4 @@ public:
 	// Sets default values for this pawn's properties
 	APlayerRunner();
 
-
-protected:
-	void BeginPlay() override;
 };

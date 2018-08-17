@@ -11,8 +11,8 @@
 UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_propellerForceNewtons(100000.0),
 		_horizontalMoveSpeed(5.0), 
-		_wingLiftCoefficient(15),
-		_airDragCoefficient(5),
+		_wingLiftCoefficient(20),
+		_airDragCoefficient(.001),
 		_isPlaying(false),
 		_lwing(nullptr),
 		_rwing(nullptr),
@@ -157,4 +157,25 @@ void UPlaneFlightMovementComponent::Initialize(UPlaneWing* lwing, UPlaneWing* rw
 
 void UPlaneFlightMovementComponent::IntendAccelerate(float throwVal) const
 {
+	auto owner = GetOwner();
+
+	if (!ensure(owner))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot find owner."));
+		return;
+	}
+
+	auto body = Cast<UPrimitiveComponent>(owner->GetRootComponent());
+
+	if (!ensure(body))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot find body."));
+		return;
+	}
+
+	auto direction = body->GetForwardVector();
+
+	auto force = _propellerForceNewtons * throwVal * direction;
+
+	body->AddForce(force);
 }

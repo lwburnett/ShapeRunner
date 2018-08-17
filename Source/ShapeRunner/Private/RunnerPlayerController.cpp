@@ -2,35 +2,9 @@
 
 #include "RunnerPlayerController.h"
 #include "GameFramework/Pawn.h"
-#include "PlaneFlightMovementComponent.h"
 
 
-ARunnerPlayerController::ARunnerPlayerController() :
-		_movementComponent(nullptr)
+ARunnerPlayerController::ARunnerPlayerController()
 {
 	PrimaryActorTick.bCanEverTick = false;
-}
-
-void ARunnerPlayerController::BeginPlay()
-{
-	auto owner = GetPawn();
-
-	if (!ensure(owner))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No pawn found for player controller"));
-		return;
-	}
-
-	_movementComponent = GetMovementComponent(owner);
-
-	if (!ensure(_movementComponent))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No movement component found for player controller"));
-		return;
-	}
-}
-
-UPlaneFlightMovementComponent* ARunnerPlayerController::GetMovementComponent(APawn* owner)
-{
-	return owner->FindComponentByClass<UPlaneFlightMovementComponent>();
 }
