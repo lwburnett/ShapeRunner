@@ -6,9 +6,6 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "PlaneFlightMovementComponent.generated.h"
 
-class UArrowComponent;
-class UPlaneWing;
-
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class SHAPERUNNER_API UPlaneFlightMovementComponent : public UProjectileMovementComponent
@@ -20,16 +17,12 @@ public:
 	UPlaneFlightMovementComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void IntendAccelerate(float throwVal = 1) const;
+	void IntendToggleLeftInput(bool inputEnabled);
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void IntendRotateClockwise(float throwVal) const;
-
-	UFUNCTION(BlueprintCallable, Category = Setup)
-	void Initialize(UPlaneWing* lwing, UPlaneWing* rwing, UArrowComponent* propeller);
+	void IntendToggleRightInput(bool inputEnabled);
 
 	void BeginPlay() override;
-
 	void TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
 
 private:
@@ -37,7 +30,7 @@ private:
 	float _propellerForceNewtons;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	float _horizontalMoveSpeed;
+	float _rotationDegreesPerSecond;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _wingLiftCoefficient;
@@ -50,10 +43,8 @@ private:
 
 	bool _isPlaying;
 
-	UPlaneWing* _lwing;
-	UPlaneWing* _rwing;
-	UArrowComponent* _propeller;
-
+	bool _isLeftInputEnabled;
+	bool _isRightInputEnabled;
 
 	UFUNCTION()
 	void OnBeginPlaying();
@@ -65,7 +56,13 @@ private:
 
 	bool InitializeGameStateSync();
 
-	void ApplyWingLiftForce(AActor* body);
+	void ApplyWingLiftForce(AActor* owner, UPrimitiveComponent* body) const;
 
-	void ApplyDragForce(AActor* body);
+	void ApplyDragForce(AActor* owner, UPrimitiveComponent* body) const;
+
+	void ApplyUserInput(AActor* owner, UPrimitiveComponent* body) const;
+
+	void ApplyAcceleration(AActor* owner, UPrimitiveComponent* body) const;
+
+	bool TryGetOwnerAndBody(AActor*& out_owner, UPrimitiveComponent*& out_body) const;
 };

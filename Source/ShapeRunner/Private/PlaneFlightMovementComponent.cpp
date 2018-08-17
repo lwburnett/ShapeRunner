@@ -5,37 +5,18 @@
 #include "Engine/World.h"
 #include "RunnerGameState.h"
 #include "Components/PrimitiveComponent.h"
-#include "Components/ArrowComponent.h"
 
 
 UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_propellerForceNewtons(50000.0),
-		_horizontalMoveSpeed(5.0),
+		_rotationDegreesPerSecond(10.0),
 		_wingLiftCoefficient(20),
-		_airDragCoefficient(.001), 
+		_airDragCoefficient(.001),
 		_propellerForceAngleDegrees(20),
 		_isPlaying(false),
-		_lwing(nullptr),
-		_rwing(nullptr),
-		_propeller(nullptr)
+		_isLeftInputEnabled(false),
+		_isRightInputEnabled(false)
 {
-}
-
-void UPlaneFlightMovementComponent::IntendRotateClockwise(const float throwVal) const
-{
-	auto pawn = Cast<APawn>(GetOwner());
-
-	if (!pawn)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Cannot move pawn horizontal"));
-		return;
-	}
-
-	auto clampedThrow = FMath::Clamp<float>(throwVal, -1.0, 1.0);
-
-	auto direction = GetHorizontalVector(pawn->GetActorRotation(), clampedThrow);
-
-	pawn->AddMovementInput(direction, clampedThrow * _horizontalMoveSpeed);
 }
 
 bool UPlaneFlightMovementComponent::InitializeGameStateSync()
@@ -56,34 +37,33 @@ bool UPlaneFlightMovementComponent::InitializeGameStateSync()
 	return false;
 }
 
-void UPlaneFlightMovementComponent::ApplyWingLiftForce(AActor* owner)
+void UPlaneFlightMovementComponent::ApplyWingLiftForce(AActor* owner, UPrimitiveComponent* body) const
 {
-	auto body = Cast<UPrimitiveComponent>(owner->GetRootComponent());
-
-	if(!ensure(body))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Cannot find body"));
-		return;
-	}
-
 	auto direction = body->GetUpVector();
 
 	body->AddForce(_wingLiftCoefficient * owner->GetVelocity().Size() * direction);
 }
 
-void UPlaneFlightMovementComponent::ApplyDragForce(AActor* owner)
+void UPlaneFlightMovementComponent::ApplyDragForce(AActor* owner, UPrimitiveComponent* body) const
 {
-	auto body = Cast<UPrimitiveComponent>(owner->GetRootComponent());
-
-	if (!ensure(body))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Cannot find body"));
-		return;
-	}
-
 	auto direction = body->GetForwardVector() * -1;
 
 	body->AddForce(_airDragCoefficient * FMath::Square(owner->GetVelocity().Size()) * direction);
+}
+
+void UPlaneFlightMovementComponent::ApplyUserInput(AActor* owner, UPrimitiveComponent* body) const
+{
+	if (!_isLeftInputEnabled && !_isRightInputEnabled)
+		return;
+
+	if (_isLeftInputEnabled && _isRightInputEnabled)
+		ApplyAcceleration(owner, body);
+
+	auto multiplier = _isRightInputEnabled ? 1 : -1;
+	auto rollChange = multiplier * _rotationDegreesPerSecond * GetWorld()->DeltaTimeSeconds;
+	auto rotationChange = FRotator(0, 0, rollChange);
+	
+	owner->SetActorRotation(owner->GetActorRotation() + rotationChange);
 }
 
 void UPlaneFlightMovementComponent::BeginPlay()
@@ -92,6 +72,22 @@ void UPlaneFlightMovementComponent::BeginPlay()
 
 	if (!InitializeGameStateSync())
 		return;
+
+	auto owner = GetOwner();
+
+	if (!ensure(owner))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot find owner."));
+		return;
+	}
+
+	auto body = Cast<UPrimitiveComponent>(owner->GetRootComponent());
+
+	if (!ensure(body))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot find body."));
+		return;
+	}
 }
 
 void UPlaneFlightMovementComponent::TickComponent(
@@ -105,19 +101,23 @@ void UPlaneFlightMovementComponent::TickComponent(
 	if (!_isPlaying)
 		return;
 
-	auto owner = GetOwner();
+	AActor* owner = nullptr;
+	UPrimitiveComponent* body = nullptr;
 
-	if (!ensure(owner))
-	{
-		UE_LOG(LogTemp, Error, TEXT("Cannot move pawn forward"));
+	if (!TryGetOwnerAndBody(owner, body))
 		return;
-	}
 
-	owner->SetActorRotation(owner->GetVelocity().Rotation());
+	if (!owner || !body)
+		return;
 
-	ApplyWingLiftForce(owner);
+	auto newRotation = owner->GetVelocity().Rotation();
+	owner->SetActorRotation(FRotator(newRotation.Pitch, newRotation.Yaw, owner->GetActorRotation().Roll));
 
-	ApplyDragForce(owner);
+	ApplyUserInput(owner, body);
+
+	ApplyWingLiftForce(owner, body);
+
+	ApplyDragForce(owner, body);
 }
 
 FVector UPlaneFlightMovementComponent::GetHorizontalVector(const FRotator& rotator, const float clampedThrow)
@@ -148,36 +148,49 @@ void UPlaneFlightMovementComponent::OnBeginNotPlaying()
 	_isPlaying = false;
 }
 
-void UPlaneFlightMovementComponent::Initialize(UPlaneWing* lwing, UPlaneWing* rwing, UArrowComponent* propeller)
+void UPlaneFlightMovementComponent::ApplyAcceleration(AActor* owner, UPrimitiveComponent* body) const
 {
-	_lwing = lwing;
-	_rwing = rwing;
-	_propeller = propeller;
-}
-
-void UPlaneFlightMovementComponent::IntendAccelerate(float throwVal) const
-{
-	auto owner = GetOwner();
-
-	if (!ensure(owner))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Cannot find owner."));
-		return;
-	}
-
-	auto body = Cast<UPrimitiveComponent>(owner->GetRootComponent());
-
-	if (!ensure(body))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Cannot find body."));
-		return;
-	}
-
 	auto rotation = FRotator(_propellerForceAngleDegrees, 0, 0);
 	auto forward = body->GetForwardVector();
 	auto direction = rotation.RotateVector(forward);
 
-	auto force = _propellerForceNewtons * throwVal * direction;
+	auto force = _propellerForceNewtons * direction;
 
 	body->AddForce(force);
+}
+
+
+// ReSharper disable CppParameterValueIsReassigned
+bool UPlaneFlightMovementComponent::TryGetOwnerAndBody(AActor*& out_owner, UPrimitiveComponent*& out_body) const
+// ReSharper restore CppParameterValueIsReassigned
+{
+	out_owner = GetOwner();
+
+	if (!ensure(out_owner))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot find owner."));
+		return false;
+	}
+
+	out_body = Cast<UPrimitiveComponent>(out_owner->GetRootComponent());
+
+	if (!ensure(out_body))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot find body."));
+		return false;
+	}
+
+	return true;
+}
+
+void UPlaneFlightMovementComponent::IntendToggleLeftInput(bool inputEnabled)
+{
+	_isLeftInputEnabled = inputEnabled;
+	UE_LOG(LogTemp, Warning, TEXT("Setting left to %s"), inputEnabled ? TEXT("True") : TEXT("False"));
+}
+
+void UPlaneFlightMovementComponent::IntendToggleRightInput(bool inputEnabled)
+{
+	_isRightInputEnabled = inputEnabled;
+	UE_LOG(LogTemp, Warning, TEXT("Setting right to %s"), inputEnabled ? TEXT("True") : TEXT("False"));
 }
