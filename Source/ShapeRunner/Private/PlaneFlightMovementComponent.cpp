@@ -9,15 +9,15 @@
 
 
 UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
-		_propellerForceNewtons(100000.0),
-		_horizontalMoveSpeed(5.0), 
+		_propellerForceNewtons(50000.0),
+		_horizontalMoveSpeed(5.0),
 		_wingLiftCoefficient(20),
-		_airDragCoefficient(.001),
+		_airDragCoefficient(.001), 
+		_propellerForceAngleDegrees(20),
 		_isPlaying(false),
 		_lwing(nullptr),
 		_rwing(nullptr),
 		_propeller(nullptr)
-
 {
 }
 
@@ -173,7 +173,9 @@ void UPlaneFlightMovementComponent::IntendAccelerate(float throwVal) const
 		return;
 	}
 
-	auto direction = body->GetForwardVector();
+	auto rotation = FRotator(_propellerForceAngleDegrees, 0, 0);
+	auto forward = body->GetForwardVector();
+	auto direction = rotation.RotateVector(forward);
 
 	auto force = _propellerForceNewtons * throwVal * direction;
 

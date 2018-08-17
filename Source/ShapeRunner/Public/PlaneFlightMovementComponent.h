@@ -45,6 +45,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _airDragCoefficient;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	float _propellerForceAngleDegrees;
+
 	bool _isPlaying;
 
 	UPlaneWing* _lwing;
