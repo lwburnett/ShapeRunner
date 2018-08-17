@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "RunnerPlayerController.generated.h"
 
-class USphereMovementComponent;
+class UPlaneFlightMovementComponent;
 
 UCLASS()
 class SHAPERUNNER_API ARunnerPlayerController : public APlayerController
@@ -21,7 +21,7 @@ protected:
 
 
 private:
-	USphereMovementComponent* _movementComponent;
+	UPlaneFlightMovementComponent * _movementComponent;
 
-	static USphereMovementComponent* GetMovementComponent(APawn* owner);
+	static UPlaneFlightMovementComponent* GetMovementComponent(APawn* owner);
 };

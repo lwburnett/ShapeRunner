@@ -2,8 +2,7 @@
 
 #include "RunnerPlayerController.h"
 #include "GameFramework/Pawn.h"
-#include "SphereMovementComponent.h"
-#include "GameFramework/FloatingPawnMovement.h"
+#include "PlaneFlightMovementComponent.h"
 
 
 ARunnerPlayerController::ARunnerPlayerController() :
@@ -31,7 +30,7 @@ void ARunnerPlayerController::BeginPlay()
 	}
 }
 
-USphereMovementComponent* ARunnerPlayerController::GetMovementComponent(APawn* owner)
+UPlaneFlightMovementComponent* ARunnerPlayerController::GetMovementComponent(APawn* owner)
 {
-	return owner->FindComponentByClass<USphereMovementComponent>();
+	return owner->FindComponentByClass<UPlaneFlightMovementComponent>();
 }

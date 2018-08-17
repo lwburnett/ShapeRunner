@@ -3,22 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/MovementComponent.h"
-#include "SphereMovementComponent.generated.h"
-
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "PlaneFlightMovementComponent.generated.h"
 
 class UArrowComponent;
 class UPlaneWing;
 
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class SHAPERUNNER_API USphereMovementComponent : public UMovementComponent
+class SHAPERUNNER_API UPlaneFlightMovementComponent : public UProjectileMovementComponent
 {
 	GENERATED_BODY()
 	
 	
-	
 public:
-	USphereMovementComponent();
+	UPlaneFlightMovementComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void IntendAccelerate(float throwVal = 1) const;
@@ -40,6 +39,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _horizontalMoveSpeed;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	float _wingLiftCoefficient;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	float _airDragCoefficient;
+
 	bool _isPlaying;
 
 	UPlaneWing* _lwing;
@@ -54,4 +59,10 @@ private:
 	void OnBeginNotPlaying();
 
 	static FVector GetHorizontalVector(const FRotator& rotator, float clampedThrow);
+
+	bool InitializeGameStateSync();
+
+	void ApplyWingLiftForce(AActor* body);
+
+	void ApplyDragForce(AActor* body);
 };
