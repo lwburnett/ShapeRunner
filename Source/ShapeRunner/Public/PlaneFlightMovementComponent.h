@@ -65,4 +65,6 @@ private:
 	void ApplyAcceleration(AActor* owner, UPrimitiveComponent* body) const;
 
 	bool TryGetOwnerAndBody(AActor*& out_owner, UPrimitiveComponent*& out_body) const;
+
+	bool ShouldApplyWingLift() const;
 };

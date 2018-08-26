@@ -118,7 +118,8 @@ void UPlaneFlightMovementComponent::TickComponent(
 
 	ApplyUserInput(owner, body);
 
-	ApplyWingLiftForce(owner, body);
+	if(ShouldApplyWingLift())
+		ApplyWingLiftForce(owner, body);
 
 	ApplyDragForce(owner, body);
 }
@@ -184,6 +185,14 @@ bool UPlaneFlightMovementComponent::TryGetOwnerAndBody(AActor*& out_owner, UPrim
 	}
 
 	return true;
+}
+
+bool UPlaneFlightMovementComponent::ShouldApplyWingLift() const
+{
+	if (_isLeftInputEnabled && _isRightInputEnabled || !_isLeftInputEnabled && !_isRightInputEnabled)
+		return true;
+
+	return false;
 }
 
 void UPlaneFlightMovementComponent::IntendToggleLeftInput(bool inputEnabled)
