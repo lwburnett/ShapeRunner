@@ -8,11 +8,11 @@
 
 
 UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
-		_propellerForceNewtons(50000.0),
-		_rotationDegreesPerSecond(10.0),
-		_wingLiftCoefficient(20),
+		_propellerForceNewtons(40000.0),
+		_rotationDegreesPerSecond(90),
+		_wingLiftCoefficient(19),
 		_airDragCoefficient(.001),
-		_propellerForceAngleDegrees(20),
+		_propellerForceAngleDegrees(30),
 		_isPlaying(false),
 		_isLeftInputEnabled(false),
 		_isRightInputEnabled(false)
@@ -57,7 +57,10 @@ void UPlaneFlightMovementComponent::ApplyUserInput(AActor* owner, UPrimitiveComp
 		return;
 
 	if (_isLeftInputEnabled && _isRightInputEnabled)
+	{
 		ApplyAcceleration(owner, body);
+		return;
+	}
 
 	auto multiplier = _isRightInputEnabled ? 1 : -1;
 	auto rollChange = multiplier * _rotationDegreesPerSecond * GetWorld()->DeltaTimeSeconds;
@@ -186,11 +189,9 @@ bool UPlaneFlightMovementComponent::TryGetOwnerAndBody(AActor*& out_owner, UPrim
 void UPlaneFlightMovementComponent::IntendToggleLeftInput(bool inputEnabled)
 {
 	_isLeftInputEnabled = inputEnabled;
-	UE_LOG(LogTemp, Warning, TEXT("Setting left to %s"), inputEnabled ? TEXT("True") : TEXT("False"));
 }
 
 void UPlaneFlightMovementComponent::IntendToggleRightInput(bool inputEnabled)
 {
 	_isRightInputEnabled = inputEnabled;
-	UE_LOG(LogTemp, Warning, TEXT("Setting right to %s"), inputEnabled ? TEXT("True") : TEXT("False"));
 }
