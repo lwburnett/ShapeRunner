@@ -30,6 +30,9 @@ public:
 
 	bool IsPlaying() const;
 
+	UFUNCTION(BlueprintCallable, Category = "")
+	FRotator GetAbsoluteForward() const;
+
 	FGameStateDelegate OnBeginPlaying;
 	FGameStateDelegate OnBeginLoading;
 	FGameStateDelegate OnBeginPausing;
@@ -43,6 +46,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	FVector _startPosition;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	FRotator _absoluteForward;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	TSubclassOf<ATileBase> _tileBlueprint;

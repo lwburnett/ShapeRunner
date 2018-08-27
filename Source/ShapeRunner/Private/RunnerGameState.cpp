@@ -9,6 +9,7 @@
 ARunnerGameState::ARunnerGameState():
 		_maxNumTiles(10),
 		_startPosition(0.0),
+		_absoluteForward(0.0),
 		_tileBlueprint(nullptr),
 		_factory(nullptr),
 		_mostRecentTile(nullptr), 
@@ -19,6 +20,11 @@ ARunnerGameState::ARunnerGameState():
 bool ARunnerGameState::IsPlaying() const
 {
 	return _playState == EPlayState::Playing;
+}
+
+FRotator ARunnerGameState::GetAbsoluteForward() const
+{
+	return _absoluteForward;
 }
 
 void ARunnerGameState::BeginPlay()

@@ -10,7 +10,7 @@
 UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_propellerForceNewtons(40000.0),
 		_rotationDegreesPerSecond(90),
-		_wingLiftCoefficient(19),
+		_wingLiftCoefficient(15),
 		_airDragCoefficient(.001),
 		_propellerForceAngleDegrees(30),
 		_isPlaying(false),
