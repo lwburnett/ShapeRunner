@@ -15,7 +15,8 @@ UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_propellerForceAngleDegrees(30),
 		_isPlaying(false),
 		_isLeftInputEnabled(false),
-		_isRightInputEnabled(false)
+		_isRightInputEnabled(false),
+		_worldGravityAcceleration(0)
 {
 }
 
@@ -91,6 +92,8 @@ void UPlaneFlightMovementComponent::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Cannot find body."));
 		return;
 	}
+
+	_worldGravityAcceleration = GetWorld()->GetGravityZ();
 }
 
 void UPlaneFlightMovementComponent::TickComponent(
@@ -118,7 +121,9 @@ void UPlaneFlightMovementComponent::TickComponent(
 
 	ApplyUserInput(owner, body);
 
-	if(ShouldApplyWingLift())
+	if (IsRolling())
+		ApplyStandardUpwardForce(owner, body);
+	else
 		ApplyWingLiftForce(owner, body);
 
 	ApplyDragForce(owner, body);
@@ -187,12 +192,12 @@ bool UPlaneFlightMovementComponent::TryGetOwnerAndBody(AActor*& out_owner, UPrim
 	return true;
 }
 
-bool UPlaneFlightMovementComponent::ShouldApplyWingLift() const
+bool UPlaneFlightMovementComponent::IsRolling() const
 {
 	if (_isLeftInputEnabled && _isRightInputEnabled || !_isLeftInputEnabled && !_isRightInputEnabled)
-		return true;
+		return false;
 
-	return false;
+	return true;
 }
 
 void UPlaneFlightMovementComponent::IntendToggleLeftInput(bool inputEnabled)
@@ -203,4 +208,18 @@ void UPlaneFlightMovementComponent::IntendToggleLeftInput(bool inputEnabled)
 void UPlaneFlightMovementComponent::IntendToggleRightInput(bool inputEnabled)
 {
 	_isRightInputEnabled = inputEnabled;
+}
+
+void UPlaneFlightMovementComponent::ApplyStandardUpwardForce(AActor* actor, UPrimitiveComponent* body)
+{
+	if (FMath::Abs(_worldGravityAcceleration) < .001)
+		_worldGravityAcceleration = GetWorld()->GetGravityZ();
+	if (FMath::Abs(_worldGravityAcceleration) < .001)
+		return;
+
+	auto force = _worldGravityAcceleration * body->GetMass();
+	auto direction = FVector(0.0, 0.0, 1.0);
+	auto forceV = FMath::Abs(force) * direction;
+
+	body->AddForce(forceV);
 }

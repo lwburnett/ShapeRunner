@@ -45,6 +45,7 @@ private:
 
 	bool _isLeftInputEnabled;
 	bool _isRightInputEnabled;
+	float _worldGravityAcceleration;
 
 	UFUNCTION()
 	void OnBeginPlaying();
@@ -64,7 +65,9 @@ private:
 
 	void ApplyAcceleration(AActor* owner, UPrimitiveComponent* body) const;
 
+	void ApplyStandardUpwardForce(AActor* actor, UPrimitiveComponent* body);
+
 	bool TryGetOwnerAndBody(AActor*& out_owner, UPrimitiveComponent*& out_body) const;
 
-	bool ShouldApplyWingLift() const;
+	bool IsRolling() const;
 };
