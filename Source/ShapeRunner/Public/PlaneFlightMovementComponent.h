@@ -41,6 +41,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _propellerForceAngleDegrees;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	float _rollingForceMultiplier;
+
 	bool _isPlaying;
 
 	bool _isLeftInputEnabled;

@@ -12,7 +12,8 @@ UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_rotationDegreesPerSecond(90),
 		_wingLiftCoefficient(15),
 		_airDragCoefficient(.001),
-		_propellerForceAngleDegrees(30),
+		_propellerForceAngleDegrees(30), 
+		_rollingForceMultiplier(.5),
 		_isPlaying(false),
 		_isLeftInputEnabled(false),
 		_isRightInputEnabled(false),
@@ -221,5 +222,5 @@ void UPlaneFlightMovementComponent::ApplyStandardUpwardForce(AActor* actor, UPri
 	auto direction = FVector(0.0, 0.0, 1.0);
 	auto forceV = FMath::Abs(force) * direction;
 
-	body->AddForce(forceV);
+	body->AddForce(forceV * _rollingForceMultiplier);
 }
