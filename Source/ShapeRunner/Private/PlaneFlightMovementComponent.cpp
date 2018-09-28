@@ -12,8 +12,9 @@ UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_rotationDegreesPerSecond(90),
 		_wingLiftCoefficient(15),
 		_airDragCoefficient(.001),
-		_propellerForceAngleDegrees(30), 
-		_rollingForceMultiplier(.5),
+		_propellerForceAngleDegrees(10),
+		_rollingForceMultiplier(.5), 
+		_maxSpeed(2000),
 		_isPlaying(false),
 		_isLeftInputEnabled(false),
 		_isRightInputEnabled(false),
@@ -53,14 +54,14 @@ void UPlaneFlightMovementComponent::ApplyDragForce(AActor* owner, UPrimitiveComp
 	body->AddForce(_airDragCoefficient * FMath::Square(owner->GetVelocity().Size()) * direction);
 }
 
-void UPlaneFlightMovementComponent::ApplyUserInput(AActor* owner, UPrimitiveComponent* body) const
+void UPlaneFlightMovementComponent::ApplyUserInput(AActor* owner, UPrimitiveComponent* body, float deltaTime) const
 {
 	if (!_isLeftInputEnabled && !_isRightInputEnabled)
 		return;
 
 	if (_isLeftInputEnabled && _isRightInputEnabled)
 	{
-		ApplyAcceleration(owner, body);
+		ApplyAcceleration(owner, body, deltaTime);
 		return;
 	}
 
@@ -120,7 +121,7 @@ void UPlaneFlightMovementComponent::TickComponent(
 	auto newRotation = owner->GetVelocity().Rotation();
 	owner->SetActorRotation(FRotator(newRotation.Pitch, newRotation.Yaw, owner->GetActorRotation().Roll));
 
-	ApplyUserInput(owner, body);
+	ApplyUserInput(owner, body, deltaTime);
 
 	if (IsRolling())
 		ApplyStandardUpwardForce(owner, body);
@@ -158,15 +159,29 @@ void UPlaneFlightMovementComponent::OnBeginNotPlaying()
 	_isPlaying = false;
 }
 
-void UPlaneFlightMovementComponent::ApplyAcceleration(AActor* owner, UPrimitiveComponent* body) const
+void UPlaneFlightMovementComponent::ApplyAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime) const
 {
-	auto rotation = FRotator(_propellerForceAngleDegrees, 0, 0);
-	auto forward = body->GetForwardVector();
-	auto direction = rotation.RotateVector(forward);
+	// Vertical force
+	auto verticalForceMag = _propellerForceNewtons * FMath::Abs(FMath::Sin(_propellerForceAngleDegrees));
+	auto upDirection = body->GetUpVector();
 
-	auto force = _propellerForceNewtons * direction;
+	auto verticalForce = verticalForceMag * upDirection;
 
-	body->AddForce(force);
+	body->AddForce(verticalForce);
+
+	// Forward force
+	auto speed = owner->GetVelocity().Size();
+	if (_maxSpeed <= speed)
+		return;
+
+	auto potentialForwardForce = (_maxSpeed - speed) * body->GetMass() / deltaTime;
+
+	auto forwardForceMag = FMath::Min(potentialForwardForce, _propellerForceNewtons * FMath::Abs(FMath::Cos(_propellerForceAngleDegrees)));
+	auto forwardDirection = body->GetForwardVector();
+
+	auto forwardForce = forwardForceMag * forwardDirection;
+
+	body->AddForce(forwardForce);
 }
 
 

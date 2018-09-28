@@ -44,6 +44,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _rollingForceMultiplier;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	float _maxSpeed;
+
 	bool _isPlaying;
 
 	bool _isLeftInputEnabled;
@@ -64,9 +67,9 @@ private:
 
 	void ApplyDragForce(AActor* owner, UPrimitiveComponent* body) const;
 
-	void ApplyUserInput(AActor* owner, UPrimitiveComponent* body) const;
+	void ApplyUserInput(AActor* owner, UPrimitiveComponent* body, float deltaTime) const;
 
-	void ApplyAcceleration(AActor* owner, UPrimitiveComponent* body) const;
+	void ApplyAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime) const;
 
 	void ApplyStandardUpwardForce(AActor* actor, UPrimitiveComponent* body);
 
