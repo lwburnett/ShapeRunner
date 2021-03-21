@@ -73,6 +73,25 @@ void UPlaneFlightMovementComponent::ApplyUserInput(AActor* owner, UPrimitiveComp
 		case RollCounterClockwise:
 			ApplyUserRoll(owner, deltaTime, -1.0);
 			break;
+		case AccelerateDown: 
+			ApplyUserAcceleration(owner, body, deltaTime, -1.0);
+			break;
+		case AccelerateUpAndRollClockwise:
+			ApplyUserAcceleration(owner, body, deltaTime, 0.25);
+			ApplyUserRoll(owner, deltaTime, 0.5);
+			break;
+		case AccelerateUpAndRollCounterClockwise:
+			ApplyUserAcceleration(owner, body, deltaTime, 0.25);
+			ApplyUserRoll(owner, deltaTime, -0.5);
+			break;
+		case AccelerateDownAndRollClockwise:
+			ApplyUserAcceleration(owner, body, deltaTime, -0.5);
+			ApplyUserRoll(owner, deltaTime, 0.5);
+			break;
+		case AccelerateDownAndRollCounterClockwise:
+			ApplyUserAcceleration(owner, body, deltaTime, -0.5);
+			ApplyUserRoll(owner, deltaTime, -0.5);
+			break;
 		default:
 			UE_LOG(LogTemp, Error, TEXT("Unknown EPlaneMovementAction %s"), intendedMovementAction);
 			break;
@@ -235,13 +254,76 @@ bool UPlaneFlightMovementComponent::IsRolling() const
 
 UPlaneFlightMovementComponent::EPlaneMovementAction UPlaneFlightMovementComponent::DetermineIntendedMovementAction() const
 {
-	if (!_isLeftUpInputEnabled && !_isRightUpInputEnabled)
-		return Glide;
+	// TOption is UE4's c++ nullable. Just using this to avoid using another enum for now. Values are meant to mean:
+	//    true == force up
+	//    null == force neutral (no force)
+	//    false = force down
+	auto rightWingIntendedAction = TOptional<bool>();
 
-	if (_isLeftUpInputEnabled && _isRightUpInputEnabled)
-		return AccelerateUp;
+	if (_isRightUpInputEnabled && !_isRightDownInputEnabled)
+		rightWingIntendedAction = true;
+	else if (!_isRightUpInputEnabled && _isRightDownInputEnabled)
+		rightWingIntendedAction = false;
+	
+	TOptional<bool> leftWingIntendedAction{};
+	
+	if (_isLeftUpInputEnabled && !_isLeftDownInputEnabled)
+		leftWingIntendedAction = true;
+	else if (!_isLeftUpInputEnabled && _isLeftDownInputEnabled)
+		leftWingIntendedAction = false;
 
-	return _isRightUpInputEnabled ? RollClockwise : RollCounterClockwise;
+	if (rightWingIntendedAction.IsSet())
+	{
+		if (rightWingIntendedAction.GetValue())
+		{
+			// right is up
+			
+			if (leftWingIntendedAction.IsSet())
+			{
+				if (leftWingIntendedAction.GetValue())
+				{
+					// left is up
+					return AccelerateUp;
+				}
+				// left is down
+				return RollCounterClockwise;
+			}
+			// left is neutral
+			return AccelerateUpAndRollClockwise;
+		}
+
+		// right is down
+		if (leftWingIntendedAction.IsSet())
+		{
+			if (leftWingIntendedAction.GetValue())
+			{
+				// left is up
+				return RollClockwise;
+			}
+
+			// left is down
+			return AccelerateDown;
+		}
+
+		//Left is neutral
+		return AccelerateDownAndRollClockwise;
+	}
+
+	// right is neutral
+	if (leftWingIntendedAction.IsSet())
+	{
+		if (leftWingIntendedAction.GetValue())
+		{
+			// left is up
+			return AccelerateUpAndRollCounterClockwise;
+		}
+
+		// left is down
+		return AccelerateDownAndRollCounterClockwise;
+	}
+
+	// left is neutral
+	return Glide;
 }
 
 void UPlaneFlightMovementComponent::IntendToggleLeftUpInput(const bool inputEnabled)

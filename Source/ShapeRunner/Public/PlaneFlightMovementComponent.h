@@ -36,8 +36,13 @@ private:
 	{
 		Glide,
 		AccelerateUp,
+		AccelerateDown,
 		RollClockwise,
-		RollCounterClockwise
+		RollCounterClockwise,
+		AccelerateUpAndRollClockwise,
+		AccelerateUpAndRollCounterClockwise,
+		AccelerateDownAndRollClockwise,
+		AccelerateDownAndRollCounterClockwise
 	};
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
