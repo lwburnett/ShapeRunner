@@ -17,15 +17,29 @@ public:
 	UPlaneFlightMovementComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void IntendToggleLeftInput(bool inputEnabled);
+	void IntendToggleLeftUpInput(bool inputEnabled);
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void IntendToggleRightInput(bool inputEnabled);
+	void IntendToggleLeftDownInput(bool inputEnabled);
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void IntendToggleRightUpInput(bool inputEnabled);
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void IntendToggleRightDownInput(bool inputEnabled);
 
 	void BeginPlay() override;
 	void TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
 
 private:
+	enum EPlaneMovementAction
+	{
+		Glide,
+		AccelerateUp,
+		RollClockwise,
+		RollCounterClockwise
+	};
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _propellerForceNewtons;
 
@@ -49,8 +63,10 @@ private:
 
 	bool _isPlaying;
 
-	bool _isLeftInputEnabled;
-	bool _isRightInputEnabled;
+	bool _isLeftUpInputEnabled;
+	bool _isLeftDownInputEnabled;
+	bool _isRightUpInputEnabled;
+	bool _isRightDownInputEnabled;
 	float _worldGravityAcceleration;
 
 	UFUNCTION()
@@ -68,12 +84,16 @@ private:
 	void ApplyDragForce(AActor* owner, UPrimitiveComponent* body) const;
 
 	void ApplyUserInput(AActor* owner, UPrimitiveComponent* body, float deltaTime) const;
+	
+	void ApplyUserRoll(AActor* actor, float deltaTime, double multiplier) const;
 
-	void ApplyAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime) const;
+	void ApplyUserAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime, double multiplier) const;
 
 	void ApplyStandardUpwardForce(AActor* actor, UPrimitiveComponent* body);
 
 	bool TryGetOwnerAndBody(AActor*& out_owner, UPrimitiveComponent*& out_body) const;
 
 	bool IsRolling() const;
+
+	EPlaneMovementAction DetermineIntendedMovementAction() const;
 };

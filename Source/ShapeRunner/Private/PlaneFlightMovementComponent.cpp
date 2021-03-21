@@ -16,8 +16,10 @@ UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_rollingForceMultiplier(.5), 
 		_maxSpeed(2000),
 		_isPlaying(false),
-		_isLeftInputEnabled(false),
-		_isRightInputEnabled(false),
+		_isLeftUpInputEnabled(false),
+		_isLeftDownInputEnabled(false),
+		_isRightUpInputEnabled(false),
+		_isRightDownInputEnabled(false),
 		_worldGravityAcceleration(0)
 {
 }
@@ -56,20 +58,25 @@ void UPlaneFlightMovementComponent::ApplyDragForce(AActor* owner, UPrimitiveComp
 
 void UPlaneFlightMovementComponent::ApplyUserInput(AActor* owner, UPrimitiveComponent* body, float deltaTime) const
 {
-	if (!_isLeftInputEnabled && !_isRightInputEnabled)
-		return;
+	const auto intendedMovementAction = DetermineIntendedMovementAction();
 
-	if (_isLeftInputEnabled && _isRightInputEnabled)
+	switch (intendedMovementAction)
 	{
-		ApplyAcceleration(owner, body, deltaTime);
-		return;
+		case Glide: 
+			break;
+		case AccelerateUp:
+			ApplyUserAcceleration(owner, body, deltaTime, 1.0);
+			break;
+		case RollClockwise:
+			ApplyUserRoll(owner, deltaTime, 1.0);
+			break;
+		case RollCounterClockwise:
+			ApplyUserRoll(owner, deltaTime, -1.0);
+			break;
+		default:
+			UE_LOG(LogTemp, Error, TEXT("Unknown EPlaneMovementAction %s"), intendedMovementAction);
+			break;
 	}
-
-	auto multiplier = _isRightInputEnabled ? 1 : -1;
-	auto rollChange = multiplier * _rotationDegreesPerSecond * GetWorld()->DeltaTimeSeconds;
-	auto rotationChange = FRotator(0, 0, rollChange);
-	
-	owner->SetActorRotation(owner->GetActorRotation() + rotationChange);
 }
 
 void UPlaneFlightMovementComponent::BeginPlay()
@@ -123,10 +130,12 @@ void UPlaneFlightMovementComponent::TickComponent(
 
 	ApplyUserInput(owner, body, deltaTime);
 
-	if (IsRolling())
-		ApplyStandardUpwardForce(owner, body);
-	else
-		ApplyWingLiftForce(owner, body);
+	// if (IsRolling())
+	// 	ApplyStandardUpwardForce(owner, body);
+	// else
+	// 	ApplyWingLiftForce(owner, body);
+
+	ApplyWingLiftForce(owner, body);
 
 	ApplyDragForce(owner, body);
 }
@@ -159,13 +168,13 @@ void UPlaneFlightMovementComponent::OnBeginNotPlaying()
 	_isPlaying = false;
 }
 
-void UPlaneFlightMovementComponent::ApplyAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime) const
+void UPlaneFlightMovementComponent::ApplyUserAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime, double multiplier) const
 {
 	// Vertical force
 	auto verticalForceMag = _propellerForceNewtons * FMath::Abs(FMath::Sin(_propellerForceAngleDegrees));
 	auto upDirection = body->GetUpVector();
 
-	auto verticalForce = verticalForceMag * upDirection;
+	auto verticalForce = multiplier * verticalForceMag * upDirection;
 
 	body->AddForce(verticalForce);
 
@@ -182,6 +191,14 @@ void UPlaneFlightMovementComponent::ApplyAcceleration(AActor* owner, UPrimitiveC
 	auto forwardForce = forwardForceMag * forwardDirection;
 
 	body->AddForce(forwardForce);
+}
+
+void UPlaneFlightMovementComponent::ApplyUserRoll(AActor* owner, float deltaTime, double multiplier) const
+{
+	auto rollChange = multiplier * _rotationDegreesPerSecond * deltaTime;
+	auto rotationChange = FRotator(0, 0, rollChange);
+
+	owner->SetActorRotation(owner->GetActorRotation() + rotationChange);
 }
 
 
@@ -210,20 +227,41 @@ bool UPlaneFlightMovementComponent::TryGetOwnerAndBody(AActor*& out_owner, UPrim
 
 bool UPlaneFlightMovementComponent::IsRolling() const
 {
-	if (_isLeftInputEnabled && _isRightInputEnabled || !_isLeftInputEnabled && !_isRightInputEnabled)
+	if (_isLeftUpInputEnabled && _isRightUpInputEnabled || !_isLeftUpInputEnabled && !_isRightUpInputEnabled)
 		return false;
 
 	return true;
 }
 
-void UPlaneFlightMovementComponent::IntendToggleLeftInput(bool inputEnabled)
+UPlaneFlightMovementComponent::EPlaneMovementAction UPlaneFlightMovementComponent::DetermineIntendedMovementAction() const
 {
-	_isLeftInputEnabled = inputEnabled;
+	if (!_isLeftUpInputEnabled && !_isRightUpInputEnabled)
+		return Glide;
+
+	if (_isLeftUpInputEnabled && _isRightUpInputEnabled)
+		return AccelerateUp;
+
+	return _isRightUpInputEnabled ? RollClockwise : RollCounterClockwise;
 }
 
-void UPlaneFlightMovementComponent::IntendToggleRightInput(bool inputEnabled)
+void UPlaneFlightMovementComponent::IntendToggleLeftUpInput(const bool inputEnabled)
 {
-	_isRightInputEnabled = inputEnabled;
+	_isLeftUpInputEnabled = inputEnabled;
+}
+
+void UPlaneFlightMovementComponent::IntendToggleLeftDownInput(const bool inputEnabled)
+{
+	_isLeftDownInputEnabled = inputEnabled;
+}
+
+void UPlaneFlightMovementComponent::IntendToggleRightUpInput(const bool inputEnabled)
+{
+	_isRightUpInputEnabled = inputEnabled;
+}
+
+void UPlaneFlightMovementComponent::IntendToggleRightDownInput(const bool inputEnabled)
+{
+	_isRightDownInputEnabled = inputEnabled;
 }
 
 void UPlaneFlightMovementComponent::ApplyStandardUpwardForce(AActor* actor, UPrimitiveComponent* body)
