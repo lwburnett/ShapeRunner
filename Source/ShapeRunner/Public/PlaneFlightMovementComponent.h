@@ -52,16 +52,13 @@ private:
 	float _rotationDegreesPerSecond;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	float _wingLiftCoefficient;
+	float _standardLiftExponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _airDragCoefficient;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _propellerForceAngleDegrees;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	float _rollingForceMultiplier;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _maxSpeed;
@@ -83,8 +80,6 @@ private:
 	static FVector GetHorizontalVector(const FRotator& rotator, float clampedThrow);
 
 	bool InitializeGameStateSync();
-
-	void ApplyWingLiftForce(AActor* owner, UPrimitiveComponent* body) const;
 
 	void ApplyDragForce(AActor* owner, UPrimitiveComponent* body) const;
 

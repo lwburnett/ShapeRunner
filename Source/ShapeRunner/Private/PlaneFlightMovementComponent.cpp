@@ -10,10 +10,9 @@
 UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_propellerForceNewtons(40000.0),
 		_rotationDegreesPerSecond(90),
-		_wingLiftCoefficient(15),
+		_standardLiftExponent(.5),
 		_airDragCoefficient(.001),
 		_propellerForceAngleDegrees(10),
-		_rollingForceMultiplier(.5), 
 		_maxSpeed(2000),
 		_isPlaying(false),
 		_isLeftUpInputEnabled(false),
@@ -40,13 +39,6 @@ bool UPlaneFlightMovementComponent::InitializeGameStateSync()
 
 	_isPlaying = gameState->IsPlaying();
 	return false;
-}
-
-void UPlaneFlightMovementComponent::ApplyWingLiftForce(AActor* owner, UPrimitiveComponent* body) const
-{
-	auto direction = body->GetUpVector();
-
-	body->AddForce(_wingLiftCoefficient * owner->GetVelocity().Size() * direction);
 }
 
 void UPlaneFlightMovementComponent::ApplyDragForce(AActor* owner, UPrimitiveComponent* body) const
@@ -149,12 +141,7 @@ void UPlaneFlightMovementComponent::TickComponent(
 
 	ApplyUserInput(owner, body, deltaTime);
 
-	// if (IsRolling())
-	// 	ApplyStandardUpwardForce(owner, body);
-	// else
-	// 	ApplyWingLiftForce(owner, body);
-
-	ApplyWingLiftForce(owner, body);
+	ApplyStandardUpwardForce(owner, body);
 
 	ApplyDragForce(owner, body);
 }
@@ -353,9 +340,20 @@ void UPlaneFlightMovementComponent::ApplyStandardUpwardForce(AActor* actor, UPri
 	if (FMath::Abs(_worldGravityAcceleration) < .001)
 		return;
 
-	auto force = _worldGravityAcceleration * body->GetMass();
-	auto direction = FVector(0.0, 0.0, 1.0);
-	auto forceV = FMath::Abs(force) * direction;
+	const auto currentSpeed = actor->GetVelocity().Size();
+	auto percentOfMaxSpeed = currentSpeed / _maxSpeed;
 
-	body->AddForce(forceV * _rollingForceMultiplier);
+	if (!ensure(0.0 <= percentOfMaxSpeed && percentOfMaxSpeed <= 1.0))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Percent max speed is %f. Should be between 0.0 and 1.0. Clamping"), percentOfMaxSpeed);
+		percentOfMaxSpeed = FMath::Clamp(percentOfMaxSpeed, static_cast<float>(0.0), static_cast<float>(1.0));
+	}
+	
+	const auto upwardForceMultiplier = FMath::Pow(percentOfMaxSpeed, _standardLiftExponent);
+	const auto adjustedAcceleration = upwardForceMultiplier * _worldGravityAcceleration;
+	const auto force = adjustedAcceleration * body->GetMass();
+	const auto direction = FVector(0.0, 0.0, 1.0);
+	const auto forceV = FMath::Abs(force) * direction;
+
+	body->AddForce(forceV);
 }
