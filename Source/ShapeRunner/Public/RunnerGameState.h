@@ -50,9 +50,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	FRotator _absoluteForward;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	TSubclassOf<ATileBase> _tileBlueprint;
-
 	UTileFactoryComponent* _factory;
 
 	TQueue<ATileBase*> _tileQueue;

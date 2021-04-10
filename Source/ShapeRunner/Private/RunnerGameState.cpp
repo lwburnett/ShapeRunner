@@ -10,7 +10,6 @@ ARunnerGameState::ARunnerGameState():
 		_maxNumTiles(10),
 		_startPosition(0.0),
 		_absoluteForward(0.0),
-		_tileBlueprint(nullptr),
 		_factory(nullptr),
 		_mostRecentTile(nullptr), 
 		_playState()
@@ -52,7 +51,7 @@ void ARunnerGameState::HandleTileCrossed()
 
 void ARunnerGameState::HandleTileCreation(const FTransform& transform, bool removeLast)
 {
-	auto newTile = _factory->CreateTile(_tileBlueprint, transform);
+	const auto newTile = _factory->CreateTile(transform);
 
 	_tileQueue.Enqueue(newTile);
 

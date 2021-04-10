@@ -11,7 +11,13 @@ UTileFactoryComponent::UTileFactoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-ATileBase* UTileFactoryComponent::CreateTile(UClass* blueprint, const FTransform& transform) const
+ATileBase* UTileFactoryComponent::CreateTile(const FTransform& transform) const
 {
-	return GetWorld()->SpawnActor<ATileBase>(blueprint, transform);
+	const auto numBlueprints = _availableTileBlueprints.Num();
+	
+	const auto indexToUse = FMath::RandRange(0, numBlueprints - 1);
+	
+	const auto& blueprintToUse = _availableTileBlueprints[indexToUse];
+	
+	return GetWorld()->SpawnActor<ATileBase>(blueprintToUse, transform);
 }

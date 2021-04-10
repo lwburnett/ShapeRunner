@@ -10,7 +10,7 @@
 class ATileBase;
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable)
 class SHAPERUNNER_API UTileFactoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -18,5 +18,9 @@ class SHAPERUNNER_API UTileFactoryComponent : public UActorComponent
 public:	
 	UTileFactoryComponent();
 
-	ATileBase* CreateTile(UClass* blueprint, const FTransform& transform) const;
+	ATileBase* CreateTile(const FTransform& transform) const;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	TArray<TSubclassOf<ATileBase>> _availableTileBlueprints;
 };
