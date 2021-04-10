@@ -27,10 +27,8 @@ FRotator ARunnerGameState::GetAbsoluteForward() const
 	return _absoluteForward;
 }
 
-void ARunnerGameState::BeginPlay()
+void ARunnerGameState::BeginLoad()
 {
-	Super::BeginPlay();
-
 	UpdatePlayState(EPlayState::Loading);
 
 	_factory = FindComponentByClass<UTileFactoryComponent>();
@@ -38,7 +36,7 @@ void ARunnerGameState::BeginPlay()
 	auto rotation = FRotator(0.0);
 	auto transform = FTransform(rotation, _startPosition);
 
-	for (auto i=0; i < _maxNumTiles; i++)
+	for (auto i = 0; i < _maxNumTiles; i++)
 	{
 		HandleTileCreation(transform, false);
 		transform = _mostRecentTile->GetNextTileTransform();

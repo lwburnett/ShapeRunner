@@ -33,12 +33,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "")
 	FRotator GetAbsoluteForward() const;
 
+	UFUNCTION(BlueprintCallable, Category = "")
+	void BeginLoad();
+
 	FGameStateDelegate OnBeginPlaying;
 	FGameStateDelegate OnBeginLoading;
 	FGameStateDelegate OnBeginPausing;
-
-protected:
-	void BeginPlay() override;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
