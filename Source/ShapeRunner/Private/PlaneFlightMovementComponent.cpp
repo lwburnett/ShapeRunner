@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlaneFlightMovementComponent.h"
-#include "GameFramework/Pawn.h"
 #include "Engine/World.h"
 #include "RunnerGameState.h"
 #include "Components/PrimitiveComponent.h"
@@ -14,6 +13,7 @@ UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_airDragCoefficient(.001),
 		_propellerForceAngleDegrees(10),
 		_maxSpeed(2000),
+		_glideHorizontalForceNewtons(5000.0),
 		_isPlaying(false),
 		_isLeftUpInputEnabled(false),
 		_isLeftDownInputEnabled(false),
@@ -48,13 +48,31 @@ void UPlaneFlightMovementComponent::ApplyDragForce(AActor* owner, UPrimitiveComp
 	body->AddForce(_airDragCoefficient * FMath::Square(owner->GetVelocity().Size()) * direction);
 }
 
+void UPlaneFlightMovementComponent::ApplyGlideAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime) const
+{
+	const auto rollDegrees = owner->GetActorRotation().Roll;
+	const auto rollRadians = FMath::DegreesToRadians(rollDegrees);
+	const auto sineRoll = FMath::Sin(rollRadians);
+
+	const auto forward = owner->GetActorForwardVector();
+	// little cheat to "project" forward vector onto x-y plane
+	const auto projectedForward = FVector(forward.X, forward.Y, 0.0);
+
+	const auto orthogonalForward = FVector(-projectedForward.Y, projectedForward.X, 0.0);
+	const auto normalizedOrthogonalForward = orthogonalForward.GetSafeNormal();
+
+	const auto force = normalizedOrthogonalForward * sineRoll * _glideHorizontalForceNewtons;
+	body->AddForce(force);
+}
+
 void UPlaneFlightMovementComponent::ApplyUserInput(AActor* owner, UPrimitiveComponent* body, float deltaTime) const
 {
 	const auto intendedMovementAction = DetermineIntendedMovementAction();
 
 	switch (intendedMovementAction)
 	{
-		case Glide: 
+		case Glide:
+			ApplyGlideAcceleration(owner, body, deltaTime);
 			break;
 		case AccelerateUp:
 			ApplyUserAcceleration(owner, body, deltaTime, 1.0);
@@ -244,7 +262,7 @@ UPlaneFlightMovementComponent::EPlaneMovementAction UPlaneFlightMovementComponen
 	// TOption is UE4's c++ nullable. Just using this to avoid using another enum for now. Values are meant to mean:
 	//    true == force up
 	//    null == force neutral (no force)
-	//    false = force down
+	//    false == force down
 	auto rightWingIntendedAction = TOptional<bool>();
 
 	if (_isRightUpInputEnabled && !_isRightDownInputEnabled)

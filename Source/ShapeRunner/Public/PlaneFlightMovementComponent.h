@@ -63,6 +63,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _maxSpeed;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	float _glideHorizontalForceNewtons;
+
 	bool _isPlaying;
 
 	bool _isLeftUpInputEnabled;
@@ -83,6 +86,8 @@ private:
 
 	void ApplyDragForce(AActor* owner, UPrimitiveComponent* body) const;
 
+	void ApplyGlideAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime) const;
+	
 	void ApplyUserInput(AActor* owner, UPrimitiveComponent* body, float deltaTime) const;
 	
 	void ApplyUserRoll(AActor* actor, float deltaTime, double multiplier) const;
