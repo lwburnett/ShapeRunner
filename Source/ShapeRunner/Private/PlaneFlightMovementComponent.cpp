@@ -11,7 +11,7 @@ UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_rotationDegreesPerSecond(90),
 		_standardLiftExponent(.5),
 		_airDragCoefficient(.001),
-		_propellerForceAngleDegrees(10),
+		_propellerForceAngleDegrees(30),
 		_maxSpeed(2000),
 		_glideHorizontalForceNewtons(5000.0),
 		_isPlaying(false),
@@ -195,7 +195,8 @@ void UPlaneFlightMovementComponent::OnBeginNotPlaying()
 void UPlaneFlightMovementComponent::ApplyUserAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime, double multiplier) const
 {
 	// Vertical force
-	auto verticalForceMag = _propellerForceNewtons * FMath::Abs(FMath::Sin(_propellerForceAngleDegrees));
+	const auto propellerForceAngleRadians = FMath::DegreesToRadians(_propellerForceAngleDegrees);
+	auto verticalForceMag = _propellerForceNewtons * FMath::Abs(FMath::Sin(propellerForceAngleRadians));
 	auto upDirection = body->GetUpVector();
 
 	auto verticalForce = multiplier * verticalForceMag * upDirection;
@@ -209,7 +210,7 @@ void UPlaneFlightMovementComponent::ApplyUserAcceleration(AActor* owner, UPrimit
 
 	auto potentialForwardForce = (_maxSpeed - speed) * body->GetMass() / deltaTime;
 
-	auto forwardForceMag = FMath::Min(potentialForwardForce, _propellerForceNewtons * FMath::Abs(FMath::Cos(_propellerForceAngleDegrees)));
+	auto forwardForceMag = FMath::Min(potentialForwardForce, _propellerForceNewtons * FMath::Abs(FMath::Cos(propellerForceAngleRadians)));
 	auto forwardDirection = body->GetForwardVector();
 
 	auto forwardForce = forwardForceMag * forwardDirection;
