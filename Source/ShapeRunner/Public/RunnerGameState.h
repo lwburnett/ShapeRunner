@@ -35,6 +35,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "")
 	void BeginLoad();
+	
+	void BeginEndAfterPlayerDestruction();
 
 	FGameStateDelegate OnBeginPlaying;
 	FGameStateDelegate OnBeginLoading;

@@ -44,6 +44,11 @@ void ARunnerGameState::BeginLoad()
 	UpdatePlayState(EPlayState::Playing);
 }
 
+void ARunnerGameState::BeginEndAfterPlayerDestruction()
+{
+	UE_LOG(LogTemp, Display, TEXT("TODO: runner game state handle post-death clean-up"));
+}
+
 void ARunnerGameState::HandleTileCrossed()
 {
 	HandleTileCreation(_mostRecentTile->GetNextTileTransform(), true);
