@@ -13,21 +13,39 @@ class SHAPERUNNER_API ATileBase : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
+public:
 	// Sets default values for this actor's properties
 	ATileBase();
 
 	FTransform& GetNextTileTransform();
 
-	UFUNCTION(BlueprintCallable, Category = "Events")
-	void HandleEndCrossed() const;
-
 	FTileDelegate OnEndCrossed;
-
-protected:
-	UFUNCTION(BlueprintCallable, Category = "Setup")
-	void SetNextTileTransform(const FTransform& transform);
+	
+	void Initialize();
 	
 private:
 	FTransform _nextTileTransform;
+	FCriticalSection _mutex;
+	bool _endCrossedEventAlreadyBroadcast;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	FName _endPlaneTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	FName _attachPointTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	FName _collisionObjectsTag;
+	
+	void SetupAttachPoint();
+	
+	void SetupEndPlane();
+	
+	void SetupSceneComponentCollision();
+
+	UFUNCTION()
+	void OnEndPlaneBeginOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int otherBodyIndex, bool fromSweep, const FHitResult& sweepResult);
+
+	UFUNCTION()
+	void OnCollisionObjectHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, FVector normalImpulse, const FHitResult& hit);
 };

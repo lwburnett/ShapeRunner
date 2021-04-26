@@ -19,5 +19,9 @@ ATileBase* UTileFactoryComponent::CreateTile(const FTransform& transform) const
 	
 	const auto& blueprintToUse = _availableTileBlueprints[indexToUse];
 	
-	return GetWorld()->SpawnActor<ATileBase>(blueprintToUse, transform);
+	const auto newTile = GetWorld()->SpawnActor<ATileBase>(blueprintToUse, transform);
+
+	newTile->Initialize();
+
+	return newTile;
 }
