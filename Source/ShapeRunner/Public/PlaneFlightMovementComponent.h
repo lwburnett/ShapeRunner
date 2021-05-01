@@ -66,6 +66,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	float _glideHorizontalForceNewtons;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	float _movementCeilingHeight;
+
 	bool _isPlaying;
 
 	bool _isLeftUpInputEnabled;
@@ -97,8 +100,6 @@ private:
 	void ApplyStandardUpwardForce(AActor* actor, UPrimitiveComponent* body);
 
 	bool TryGetOwnerAndBody(AActor*& out_owner, UPrimitiveComponent*& out_body) const;
-
-	bool IsRolling() const;
 
 	EPlaneMovementAction DetermineIntendedMovementAction() const;
 };

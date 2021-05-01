@@ -14,6 +14,7 @@ UPlaneFlightMovementComponent::UPlaneFlightMovementComponent() :
 		_propellerForceAngleDegrees(30),
 		_maxSpeed(2000),
 		_glideHorizontalForceNewtons(5000.0),
+		_movementCeilingHeight(1450.0),
 		_isPlaying(false),
 		_isLeftUpInputEnabled(false),
 		_isLeftDownInputEnabled(false),
@@ -194,28 +195,60 @@ void UPlaneFlightMovementComponent::OnBeginNotPlaying()
 
 void UPlaneFlightMovementComponent::ApplyUserAcceleration(AActor* owner, UPrimitiveComponent* body, float deltaTime, double multiplier) const
 {
-	// Vertical force
+	// Find desired upward force
 	const auto propellerForceAngleRadians = FMath::DegreesToRadians(_propellerForceAngleDegrees);
-	auto verticalForceMag = _propellerForceNewtons * FMath::Abs(FMath::Sin(propellerForceAngleRadians));
-	auto upDirection = body->GetUpVector();
+	const auto upwardForceMag = _propellerForceNewtons * FMath::Abs(FMath::Sin(propellerForceAngleRadians));
+	const auto upDirection = body->GetUpVector();
 
-	auto verticalForce = multiplier * verticalForceMag * upDirection;
+	const auto upwardForce = multiplier * upwardForceMag * upDirection;
 
-	body->AddForce(verticalForce);
-
-	// Forward force
-	auto speed = owner->GetVelocity().Size();
+	// Find desired forward force
+	const auto speed = owner->GetVelocity().Size();
 	if (_maxSpeed <= speed)
 		return;
 
-	auto potentialForwardForce = (_maxSpeed - speed) * body->GetMass() / deltaTime;
+	// Finding the potential forward force it would take to get us to max speed. We will then take the min between said force and the propeller force give by _propellerForceNewtons
+	// f = m * dv / dt
+	const auto potentialForwardForce = (_maxSpeed - speed) * body->GetMass() / deltaTime;
 
-	auto forwardForceMag = FMath::Min(potentialForwardForce, _propellerForceNewtons * FMath::Abs(FMath::Cos(propellerForceAngleRadians)));
-	auto forwardDirection = body->GetForwardVector();
+	const auto forwardForceMag = FMath::Min(potentialForwardForce, _propellerForceNewtons * FMath::Abs(FMath::Cos(propellerForceAngleRadians)));
+	const auto forwardDirection = body->GetForwardVector();
 
-	auto forwardForce = forwardForceMag * forwardDirection;
+	const auto forwardForce = forwardForceMag * forwardDirection;
 
-	body->AddForce(forwardForce);
+	// Down-scale both upward and forward forces based on movement ceiling
+
+	// Calculate max force allowed in the Z direction
+	double maxForceZ = 0;
+	const auto playerHeight = owner->GetActorLocation().Z;
+	if (_movementCeilingHeight > playerHeight)
+	{
+		const auto speedZ = owner->GetVelocity().Z;
+		maxForceZ = body->GetMass() * (((_movementCeilingHeight - playerHeight) / deltaTime - speedZ) / deltaTime);
+	}
+
+	// Calculate the factor by which to scale each directional force
+	auto upwardForceAdjusted = upwardForce;
+	auto forwardForceAdjusted = forwardForce;
+	
+	const auto upwardNormalZ = FMath::Clamp<float>(upwardForce.GetSafeNormal().Z, 0.0, 1.0);
+	const auto forwardNormalZ = FMath::Clamp<float>(forwardForce.GetSafeNormal().Z, 0.0, 1.0);
+
+	if (upwardNormalZ > 0 || forwardNormalZ > 0)
+	{
+		const auto denominator = (upwardNormalZ * upwardForce + forwardNormalZ * forwardForce).Z;
+		const auto potentialScaleFactor = maxForceZ / denominator;
+
+		if (potentialScaleFactor < 1.0)
+		{
+			upwardForceAdjusted = potentialScaleFactor * forwardNormalZ * upwardForce;
+			forwardForceAdjusted = potentialScaleFactor * upwardNormalZ * forwardForceAdjusted;
+		}
+	}
+
+	// Apply forces
+	body->AddForce(upwardForceAdjusted);
+	body->AddForce(forwardForceAdjusted);
 }
 
 void UPlaneFlightMovementComponent::ApplyUserRoll(AActor* owner, float deltaTime, double multiplier) const
@@ -246,14 +279,6 @@ bool UPlaneFlightMovementComponent::TryGetOwnerAndBody(AActor*& out_owner, UPrim
 		UE_LOG(LogTemp, Warning, TEXT("Cannot find body."));
 		return false;
 	}
-
-	return true;
-}
-
-bool UPlaneFlightMovementComponent::IsRolling() const
-{
-	if (_isLeftUpInputEnabled && _isRightUpInputEnabled || !_isLeftUpInputEnabled && !_isRightUpInputEnabled)
-		return false;
 
 	return true;
 }

@@ -98,7 +98,7 @@ void ATileBase::OnEndPlaneBeginOverlap(
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Something crossed the end plane that isn't the player."));
+		UE_LOG(LogTemp, Warning, TEXT("Something crossed the end plane that isn't the player: %s"), *otherActor->GetFName().ToString());
 	}
 }
 
