@@ -230,21 +230,24 @@ void UPlaneFlightMovementComponent::ApplyUserAcceleration(AActor* owner, UPrimit
 	// Calculate the factor by which to scale each directional force
 	auto upwardForceAdjusted = upwardForce;
 	auto forwardForceAdjusted = forwardForce;
-	
-	const auto upwardNormalZ = FMath::Clamp<float>(upwardForce.GetSafeNormal().Z, 0.0, 1.0);
-	const auto forwardNormalZ = FMath::Clamp<float>(forwardForce.GetSafeNormal().Z, 0.0, 1.0);
 
-	if (upwardNormalZ > 0 || forwardNormalZ > 0)
-	{
-		const auto denominator = (upwardNormalZ * upwardForce + forwardNormalZ * forwardForce).Z;
-		const auto potentialScaleFactor = maxForceZ / denominator;
+	// Commenting this out for now because I don't think it actually makes much sense
+	// It seems like a more simple and intuitive solution to just make an actual ceiling on levels
 
-		if (potentialScaleFactor < 1.0)
-		{
-			upwardForceAdjusted = potentialScaleFactor * forwardNormalZ * upwardForce;
-			forwardForceAdjusted = potentialScaleFactor * upwardNormalZ * forwardForceAdjusted;
-		}
-	}
+	// const auto upwardNormalZ = FMath::Clamp<float>(upwardForce.GetSafeNormal().Z, 0.0, 1.0);
+	// const auto forwardNormalZ = FMath::Clamp<float>(forwardForce.GetSafeNormal().Z, 0.0, 1.0);
+	//
+	// if (upwardNormalZ > 0 || forwardNormalZ > 0)
+	// {
+	// 	const auto denominator = (upwardNormalZ * upwardForce + forwardNormalZ * forwardForce).Z;
+	// 	const auto potentialScaleFactor = maxForceZ / denominator;
+	//
+	// 	if (potentialScaleFactor < 1.0)
+	// 	{
+	// 		upwardForceAdjusted = potentialScaleFactor * forwardNormalZ * upwardForce;
+	// 		forwardForceAdjusted = potentialScaleFactor * upwardNormalZ * forwardForceAdjusted;
+	// 	}
+	// }
 
 	// Apply forces
 	body->AddForce(upwardForceAdjusted);
