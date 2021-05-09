@@ -18,11 +18,12 @@ class SHAPERUNNER_API UCameraMovementComponent : public UMovementComponent
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	void Initialize(USpringArmComponent* cameraBoom);
+	void Initialize(USpringArmComponent* cameraBoom, FRotator initialForward);
 
 
 	void TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
 
 private:
 	USpringArmComponent* _cameraBoom;
+	FRotator _desiredForward;
 };

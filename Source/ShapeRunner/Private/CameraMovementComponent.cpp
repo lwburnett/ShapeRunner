@@ -2,12 +2,17 @@
 
 #include "CameraMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/Actor.h"
 
 
-void UCameraMovementComponent::Initialize(USpringArmComponent* cameraBoom)
+void UCameraMovementComponent::Initialize(USpringArmComponent* cameraBoom, FRotator initialForward)
 {
 	_cameraBoom = cameraBoom;
+
+	if (!ensure(_cameraBoom))
+		UE_LOG(LogTemp, Warning, TEXT("Null camera boom given."));
+
+	_desiredForward = initialForward;
+	_cameraBoom->SetWorldRotation(_desiredForward);
 }
 
 void UCameraMovementComponent::TickComponent(
@@ -17,9 +22,10 @@ void UCameraMovementComponent::TickComponent(
 {
 	Super::TickComponent(deltaTime, tickType, thisTickFunction);
 
-	// auto ownerPosition = GetOwner()->GetActorLocation();
+	// const auto owner = GetOwner();
 	//
-	// auto xPosition = _cameraBoom->GetComponentLocation().X;
-	// auto newLocation = FVector(xPosition, ownerPosition.Y, ownerPosition.Z);
-	// _cameraBoom->SetWorldLocation(newLocation);
+	// if (!ensure(owner))
+	// 	UE_LOG(LogTemp, Warning, TEXT("Cannot find owner!"));
+
+	_cameraBoom->SetWorldRotation(_desiredForward);
 }
