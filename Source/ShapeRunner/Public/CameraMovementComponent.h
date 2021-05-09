@@ -6,7 +6,7 @@
 #include "GameFramework/MovementComponent.h"
 #include "CameraMovementComponent.generated.h"
 
-class UCameraComponent;
+class USpringArmComponent;
 /**
  * 
  */
@@ -18,11 +18,11 @@ class SHAPERUNNER_API UCameraMovementComponent : public UMovementComponent
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	void Initialize(UCameraComponent* camera);
+	void Initialize(USpringArmComponent* cameraBoom);
 
 
 	void TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
 
 private:
-	UCameraComponent* _camera;
+	USpringArmComponent* _cameraBoom;
 };
